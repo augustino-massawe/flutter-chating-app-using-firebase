@@ -1,2 +1,28 @@
-# flutter-chating-app-using-firebase
-A real-time chat application built with Flutter and Firebase, featuring user authentication, one-to-one messaging, user discovery, and push notifications using Firebase Cloud Messaging.
+# Flutter Firebase Chat App
+
+A real-time chat application built using Flutter and Firebase.
+
+## Features
+- User Authentication (Firebase Auth)
+- View all registered users
+- Real-time one-to-one chat
+- Push Notifications using Firebase Cloud Messaging
+
+## Technologies Used
+- Flutter
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Cloud Messaging
+
+## Setup Instructions
+1. Clone the repository
+2. Run `flutter pub get`
+3. Add your `google-services.json`
+4. Enable Firebase Authentication & Firestore
+5. Run `flutter run`
+
+## Screens
+- Login Screen
+- Register Screen
+- Users List
+- Chat Screen
