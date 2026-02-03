@@ -17,7 +17,7 @@ A real-time chat application built using Flutter and Firebase.
 ## Setup Instructions
 1. Clone the repository
 2. Run `flutter pub get`
-3. Add your `google-services.json`
+3. Add `google-services.json`
 4. Enable Firebase Authentication & Firestore
 5. Run `flutter run`
 
