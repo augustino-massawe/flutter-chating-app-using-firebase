@@ -156,6 +156,83 @@ dependencies:
 3. Deploy to Firebase Hosting (if using web)
 4. Submit to Google Play Store and Apple App Store
 
+## Database Structure
+
+### Collections and Fields
+
+#### 1. Users Collection
+**Document ID**: Firebase Auth UID
+
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| id | string | User's unique identifier (same as document ID) |
+| name | string | User's display name |
+| email | string | User's email address |
+| photoURL | string | URL to user's profile picture |
+| lastSeen | timestamp | Last time user was online |
+| isOnline | boolean | Current online status |
+| createdAt | timestamp | Account creation date |
+| pushToken | string | FCM token for push notifications |
+
+#### 2. Messages Collection
+**Document ID**: Auto-generated or custom message ID
+
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| id | string | Message unique identifier |
+| senderId | string | ID of the user who sent the message |
+| receiverId | string | ID of the user who received the message |
+| content | string | Message content/text |
+| timestamp | timestamp | When the message was sent |
+| isRead | boolean | Whether the message has been read |
+| messageType | string | Type of message (text, image, video, etc.) |
+| mediaUrl | string | URL for media files (if messageType is not text) |
+
+#### 3. Chats Collection
+**Document ID**: Chat ID (combination of user IDs)
+
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| chatId | string | Unique chat identifier |
+| participants | array | Array of user IDs in the chat |
+| lastMessage | string | Content of the last message |
+| lastMessageTime | timestamp | Time of the last message |
+| unreadCount | number | Number of unread messages |
+| isGroupChat | boolean | Whether it's a group chat or one-on-one |
+
+#### 4. Notifications Collection (Optional)
+**Document ID**: Auto-generated notification ID
+
+| Field Name | Data Type | Description |
+|------------|-----------|-------------|
+| id | string | Notification ID |
+| userId | string | User who should receive the notification |
+| title | string | Notification title |
+| body | string | Notification message |
+| data | map | Additional data for the notification |
+| timestamp | timestamp | When notification was created |
+| isRead | boolean | Whether notification has been read |
+
+### Database Relationships
+
+1. **Users ↔ Messages**: Users send and receive messages
+2. **Users ↔ Chats**: Users participate in chats
+3. **Chats ↔ Messages**: Chats contain multiple messages
+4. **Users ↔ Notifications**: Users receive notifications
+
+### Required Indexes
+
+- Users collection: Index on `isOnline` for online status queries
+- Messages collection: Composite index on `senderId` + `receiverId` + `timestamp`
+- Chats collection: Index on `participants` array for chat lookup
+
+### Common Queries
+
+- Get all users except current user
+- Get messages between two users ordered by timestamp
+- Get all chats for a specific user
+- Get unread message count for a user
+
 ## Notes
 - Ensure Firebase is properly configured with all required services enabled
 - Test authentication and messaging features thoroughly
@@ -163,3 +240,6 @@ dependencies:
 - Follow Flutter best practices for state management and architecture
 - Use proper security rules for Firestore database
 - Implement proper notification handling for different app states
+- Ensure proper indexing for optimal query performance
+- Validate all data before writing to database
+- Implement proper data backup and recovery strategies
