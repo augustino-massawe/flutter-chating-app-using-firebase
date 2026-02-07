@@ -33,6 +33,25 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- Firebase Configuration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyDLCAYJFEtuhdGHzE6GwVDaks4sh1yHpRw",
+      authDomain: "new-flutter-sms-app.firebaseapp.com",
+      projectId: "new-flutter-sms-app",
+      storageBucket: "new-flutter-sms-app.firebasestorage.app",
+      messagingSenderId: "898315261765",
+      appId: "1:898315261765:web:32189d58b8d9167cb0d02c"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

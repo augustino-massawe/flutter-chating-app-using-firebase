@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import 'screens/auth/register_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -15,7 +17,7 @@ void main() async {
   } catch (e) {
     firebaseConnected = false;
     // Optional: print error to console
-    print("Firebase initialization failed: $e");
+    debugPrint("Firebase initialization failed: $e");
   }
 
   runApp(MyApp(firebaseConnected: firebaseConnected));
@@ -28,31 +30,31 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Firebase Test App',
+      title: 'Flutter Chat App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: HomePage(firebaseConnected: firebaseConnected),
+      home: firebaseConnected
+          ? const RegisterScreen()
+          : const FirebaseErrorScreen(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  final bool firebaseConnected;
-  const HomePage({super.key, required this.firebaseConnected});
+class FirebaseErrorScreen extends StatelessWidget {
+  const FirebaseErrorScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Firebase Connection Test"),
+        title: const Text('Firebase Connection'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Center(
         child: Text(
-          firebaseConnected
-              ? "✅ Firebase Connection Successful!"
-              : "❌ Firebase Connection Failed!",
+          'Firebase Connection Failed!',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
       ),
