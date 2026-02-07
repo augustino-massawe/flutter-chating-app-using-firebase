@@ -39,4 +39,39 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<UserCredential> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    if (kDebugMode) {
+      print('Signing in user with email: ${email.trim()}');
+    }
+
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+      
+      if (kDebugMode) {
+        print('Sign in successful for user: ${credential.user?.email}');
+      }
+      
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('Firebase Auth Exception:');
+        print('Code: ${e.code}');
+        print('Message: ${e.message}');
+        print('Email: ${email.trim()}');
+      }
+      rethrow;
+    } catch (e) {
+      if (kDebugMode) {
+        print('General Exception during sign in: $e');
+      }
+      rethrow;
+    }
+  }
 }
