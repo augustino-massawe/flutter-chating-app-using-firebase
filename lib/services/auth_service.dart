@@ -74,4 +74,18 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      if (kDebugMode) {
+        print('User signed out successfully');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Sign out failed: $e');
+      }
+      rethrow;
+    }
+  }
 }
