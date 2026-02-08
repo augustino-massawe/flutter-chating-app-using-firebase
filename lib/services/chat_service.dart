@@ -61,37 +61,41 @@ class ChatService {
     required String receiverId,
     required String content,
   }) async {
-    final ids = [senderId, receiverId]..sort();
-    final conversationId = ids.join("_");
+    try {
+      final ids = [senderId, receiverId]..sort();
+      final conversationId = ids.join("_");
+      final timestamp = Timestamp.fromDate(DateTime.now());
 
-    final convoRef = _firestore
-        .collection('conversations')
-        .doc(conversationId);
-
-    final messageRef = convoRef
-        .collection('messages')
-        .doc();
-
-    await _firestore.runTransaction((transaction) async {
-      // Update conversation metadata
-      transaction.set(convoRef, {
+      // Save conversation metadata
+      await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .set({
+        'conversationId': conversationId,
         'participants': ids,
         'lastMessage': content,
-        'lastTimestamp': Timestamp.fromDate(DateTime.now()),
+        'lastTimestamp': timestamp,
+        'updatedAt': timestamp,
       }, SetOptions(merge: true));
 
-      // Add message
-      transaction.set(messageRef, {
-        'id': messageRef.id,
+      // Save message in sub-collection
+      await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .collection('messages')
+          .add({
         'senderId': senderId,
         'receiverId': receiverId,
         'content': content,
-        'timestamp': Timestamp.fromDate(DateTime.now()),
+        'timestamp': timestamp,
         'isRead': false,
         'messageType': 'text',
         'mediaUrl': null,
       });
-    });
+    } catch (e) {
+      print('Error sending message: $e');
+      rethrow;
+    }
   }
 
   /// Kuupdate message kama imefikia (read)
@@ -113,19 +117,69 @@ class ChatService {
   Stream<List<Map<String, dynamic>>> getConversations(String currentUserId) {
     return _firestore
         .collection('conversations')
-        .where('participants', arrayContains: currentUserId)
-        .orderBy('lastTimestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'conversationId': doc.id,
-          'participants': data['participants'] as List<dynamic>,
-          'lastMessage': data['lastMessage'] as String?,
-          'lastTimestamp': data['lastTimestamp'] as Timestamp?,
-        };
-      }).toList();
+      return snapshot.docs
+          .where((doc) {
+            final participants = doc['participants'] as List<dynamic>? ?? [];
+            return participants.contains(currentUserId);
+          })
+          .toList()
+          .map((doc) {
+            final data = doc.data();
+            final participants = data['participants'] as List<dynamic>? ?? [];
+            final otherUserId = participants.firstWhere(
+              (id) => id != currentUserId,
+              orElse: () => '',
+            );
+
+            return {
+              'conversationId': doc.id,
+              'participants': participants,
+              'lastMessage': data['lastMessage'] as String? ?? '',
+              'lastTimestamp': data['lastTimestamp'] as Timestamp?,
+              'otherUserId': otherUserId,
+            };
+          })
+          .toList()
+          ..sort((a, b) {
+            final timestampA = (a['lastTimestamp'] as Timestamp?)?.toDate() ?? DateTime(1970);
+            final timestampB = (b['lastTimestamp'] as Timestamp?)?.toDate() ?? DateTime(1970);
+            return timestampB.compareTo(timestampA);
+          });
     });
+  }
+
+  /// Kuvuta conversation data kwa user fulani
+  Future<Map<String, dynamic>?> getConversationData(String currentUserId, String otherUserId) async {
+    try {
+      final ids = [currentUserId, otherUserId]..sort();
+      final conversationId = ids.join("_");
+
+      final convoDoc = await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .get();
+
+      if (!convoDoc.exists) {
+        return null;
+      }
+
+      final messagesSnapshot = await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .collection('messages')
+          .get();
+
+      return {
+        'conversationId': conversationId,
+        'lastMessage': convoDoc['lastMessage'] as String?,
+        'timestamp': convoDoc['lastTimestamp'] as Timestamp?,
+        'messageCount': messagesSnapshot.size,
+      };
+    } catch (e) {
+      print('Error fetching conversation data: $e');
+      return null;
+    }
   }
 }
