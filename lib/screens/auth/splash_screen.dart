@@ -76,18 +76,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Navigate after 2.5 seconds for more dramatic effect
     Future.delayed(const Duration(seconds: 2), () {
-      _animationController.dispose();
-      if (widget.firebaseConnected) {
-        // Navigate to login screen
-        if (mounted) {
+      if (mounted) {
+        if (widget.firebaseConnected) {
+          // Navigate to login screen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const LoginScreen()),
           );
-        }
-      } else {
-        // Navigate to register screen
-        if (mounted) {
+        } else {
+          // Navigate to register screen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const RegisterScreen()),
@@ -99,6 +96,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   void dispose() {
+    if (_animationController.isAnimating) {
+      _animationController.stop();
+    }
     _animationController.dispose();
     super.dispose();
   }
