@@ -1,0 +1,435 @@
+[1mdiff --git a/lib/screens/auth/splash_screen.dart b/lib/screens/auth/splash_screen.dart[m
+[1mindex 7d269d8..4415866 100644[m
+[1m--- a/lib/screens/auth/splash_screen.dart[m
+[1m+++ b/lib/screens/auth/splash_screen.dart[m
+[36m@@ -76,18 +76,15 @@[m [mclass _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt[m
+ [m
+     // Navigate after 2.5 seconds for more dramatic effect[m
+     Future.delayed(const Duration(seconds: 2), () {[m
+[31m-      _animationController.dispose();[m
+[31m-      if (widget.firebaseConnected) {[m
+[31m-        // Navigate to login screen[m
+[31m-        if (mounted) {[m
+[32m+[m[32m      if (mounted) {[m
+[32m+[m[32m        if (widget.firebaseConnected) {[m
+[32m+[m[32m          // Navigate to login screen[m
+           Navigator.pushReplacement([m
+             context,[m
+             MaterialPageRoute(builder: (_) => const LoginScreen()),[m
+           );[m
+[31m-        }[m
+[31m-      } else {[m
+[31m-        // Navigate to register screen[m
+[31m-        if (mounted) {[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m          // Navigate to register screen[m
+           Navigator.pushReplacement([m
+             context,[m
+             MaterialPageRoute(builder: (_) => const RegisterScreen()),[m
+[36m@@ -99,6 +96,9 @@[m [mclass _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt[m
+ [m
+   @override[m
+   void dispose() {[m
+[32m+[m[32m    if (_animationController.isAnimating) {[m
+[32m+[m[32m      _animationController.stop();[m
+[32m+[m[32m    }[m
+     _animationController.dispose();[m
+     super.dispose();[m
+   }[m
+[1mdiff --git a/lib/screens/chat_room_screen.dart b/lib/screens/chat_room_screen.dart[m
+[1mindex afd3b03..5d86261 100644[m
+[1m--- a/lib/screens/chat_room_screen.dart[m
+[1m+++ b/lib/screens/chat_room_screen.dart[m
+[36m@@ -1,22 +1,204 @@[m
+ import 'package:flutter/material.dart';[m
+[32m+[m[32mimport 'package:firebase_auth/firebase_auth.dart';[m
+[32m+[m[32mimport 'package:flutter_chat_app/models/message_model.dart';[m
+[32m+[m[32mimport 'package:flutter_chat_app/services/chat_service.dart';[m
+[32m+[m[32mimport 'package:flutter_chat_app/widgets/chat_input.dart';[m
+[32m+[m[32mimport 'package:flutter_chat_app/widgets/message_bubble.dart';[m
+[32m+[m[32mimport 'package:flutter_chat_app/models/chat_model.dart';[m
+[32m+[m[32mimport 'package:flutter_chat_app/services/firestore_service.dart';[m
+ [m
+[31m-class ChatRoomScreen extends StatelessWidget {[m
+[32m+[m[32mclass ChatRoomScreen extends StatefulWidget {[m
+   final String userName;[m
+[31m-  const ChatRoomScreen({super.key, required this.userName});[m
+[32m+[m[32m  final String receiverId;[m
+[32m+[m[32m  final String? receiverPhotoUrl;[m
+[32m+[m
+[32m+[m[32m  const ChatRoomScreen({[m
+[32m+[m[32m    super.key,[m
+[32m+[m[32m    required this.userName,[m
+[32m+[m[32m    required this.receiverId,[m
+[32m+[m[32m    this.receiverPhotoUrl,[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  @override[m
+[32m+[m[32m  State<ChatRoomScreen> createState() => _ChatRoomScreenState();[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mclass _ChatRoomScreenState extends State<ChatRoomScreen> {[m
+[32m+[m[32m  final ChatService _chatService = ChatService();[m
+[32m+[m[32m  final FirestoreService _firestoreService = FirestoreService();[m
+[32m+[m[32m  final FirebaseAuth _auth = FirebaseAuth.instance;[m
+[32m+[m[32m  late String _currentUserId;[m
+[32m+[m[32m  late Stream<List<MessageModel>> _messagesStream;[m
+[32m+[m[32m  late ScrollController _scrollController;[m
+[32m+[m
+[32m+[m[32m  @override[m
+[32m+[m[32m  void initState() {[m
+[32m+[m[32m    super.initState();[m
+[32m+[m[32m    _currentUserId = _auth.currentUser!.uid;[m
+[32m+[m[32m    _messagesStream = _chatService.getMessages([m
+[32m+[m[32m      currentUserId: _currentUserId,[m
+[32m+[m[32m      otherUserId: widget.receiverId,[m
+[32m+[m[32m    );[m
+[32m+[m[32m    _scrollController = ScrollController();[m
+[32m+[m[41m    [m
+[32m+[m[32m    // Mark user as online[m
+[32m+[m[32m    _chatService.updateUserStatus(_currentUserId, true);[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  @override[m
+[32m+[m[32m  void dispose() {[m
+[32m+[m[32m    _scrollController.dispose();[m
+[32m+[m[32m    // Mark user as offline when leaving chat[m
+[32m+[m[32m    _chatService.updateUserStatus(_currentUserId, false);[m
+[32m+[m[32m    super.dispose();[m
+[32m+[m[32m  }[m
+ [m
+   @override[m
+   Widget build(BuildContext context) {[m
+     return Scaffold([m
+       appBar: AppBar([m
+[31m-        title: Text('Chat with $userName'),[m
+[31m-        centerTitle: true,[m
+[31m-      ),[m
+[31m-      body: const Center([m
+[31m-        child: Text([m
+[31m-          'Chat Room Page - hapa mtu mwingine ataendeleza kazi ya chat room',[m
+[31m-          style: TextStyle(fontSize: 18),[m
+[31m-          textAlign: TextAlign.center,[m
+[32m+[m[32m        title: Row([m
+[32m+[m[32m          children: [[m
+[32m+[m[32m            CircleAvatar([m
+[32m+[m[32m              radius: 16,[m
+[32m+[m[32m              backgroundColor: Colors.grey[300],[m
+[32m+[m[32m              backgroundImage: widget.receiverPhotoUrl != null[m[41m [m
+[32m+[m[32m                  ? NetworkImage(widget.receiverPhotoUrl!)[m[41m [m
+[32m+[m[32m                  : null,[m
+[32m+[m[32m              child: widget.receiverPhotoUrl == null[m[41m [m
+[32m+[m[32m                  ? Icon(Icons.person, size: 20, color: Colors.white)[m[41m [m
+[32m+[m[32m                  : null,[m
+[32m+[m[32m            ),[m
+[32m+[m[32m            const SizedBox(width: 12),[m
+[32m+[m[32m            Column([m
+[32m+[m[32m              crossAxisAlignment: CrossAxisAlignment.start,[m
+[32m+[m[32m              children: [[m
+[32m+[m[32m                Text([m
+[32m+[m[32m                  widget.userName,[m
+[32m+[m[32m                  style: const TextStyle(fontSize: 16),[m
+[32m+[m[32m                ),[m
+[32m+[m[32m                StreamBuilder<List<ChatModel>>([m
+[32m+[m[32m                  stream: _chatService.getUsers(),[m
+[32m+[m[32m                  builder: (context, snapshot) {[m
+[32m+[m[32m                    if (!snapshot.hasData) {[m
+[32m+[m[32m                      return const Text([m
+[32m+[m[32m                        'Offline',[m
+[32m+[m[32m                        style: TextStyle([m
+[32m+[m[32m                          fontSize: 12,[m
+[32m+[m[32m                          color: Colors.grey,[m
+[32m+[m[32m                        ),[m
+[32m+[m[32m                      );[m
+[32m+[m[32m                    }[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    final user = snapshot.data![m
+[32m+[m[32m                        .firstWhere([m
+[32m+[m[32m                          (u) => u.id == widget.receiverId,[m
+[32m+[m[32m                          orElse: () => ChatModel([m
+[32m+[m[32m                            id: '',[m
+[32m+[m[32m                            name: '',[m
+[32m+[m[32m                            email: '',[m
+[32m+[m[32m                            createdAt: DateTime.now(),[m
+[32m+[m[32m                            isOnline: false,[m
+[32m+[m[32m                          ),[m
+[32m+[m[32m                        );[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    return Text([m
+[32m+[m[32m                      user.isOnline ? 'Online' : 'Offline',[m
+[32m+[m[32m                      style: TextStyle([m
+[32m+[m[32m                        fontSize: 12,[m
+[32m+[m[32m                        color: user.isOnline ? Colors.green : Colors.grey,[m
+[32m+[m[32m                      ),[m
+[32m+[m[32m                    );[m
+[32m+[m[32m                  },[m
+[32m+[m[32m                ),[m
+[32m+[m[32m              ],[m
+[32m+[m[32m            ),[m
+[32m+[m[32m          ],[m
+         ),[m
+[32m+[m[32m        actions: [[m
+[32m+[m[32m          IconButton([m
+[32m+[m[32m            onPressed: () {[m
+[32m+[m[32m              // Handle call[m
+[32m+[m[32m              ScaffoldMessenger.of(context).showSnackBar([m
+[32m+[m[32m                const SnackBar([m
+[32m+[m[32m                  content: Text('Call feature coming soon'),[m
+[32m+[m[32m                ),[m
+[32m+[m[32m              );[m
+[32m+[m[32m            },[m
+[32m+[m[32m            icon: const Icon(Icons.call),[m
+[32m+[m[32m          ),[m
+[32m+[m[32m          IconButton([m
+[32m+[m[32m            onPressed: () {[m
+[32m+[m[32m              // Handle video call[m
+[32m+[m[32m              ScaffoldMessenger.of(context).showSnackBar([m
+[32m+[m[32m                const SnackBar([m
+[32m+[m[32m                  content: Text('Video call feature coming soon'),[m
+[32m+[m[32m                ),[m
+[32m+[m[32m              );[m
+[32m+[m[32m            },[m
+[32m+[m[32m            icon: const Icon(Icons.video_call),[m
+[32m+[m[32m          ),[m
+[32m+[m[32m          IconButton([m
+[32m+[m[32m            onPressed: () {},[m
+[32m+[m[32m            icon: const Icon(Icons.more_vert),[m
+[32m+[m[32m          ),[m
+[32m+[m[32m        ],[m
+[32m+[m[32m      ),[m
+[32m+[m[32m      body: Column([m
+[32m+[m[32m        children: [[m
+[32m+[m[32m          Expanded([m
+[32m+[m[32m            child: StreamBuilder<List<MessageModel>>([m
+[32m+[m[32m              stream: _messagesStream,[m
+[32m+[m[32m              builder: (context, snapshot) {[m
+[32m+[m[32m                if (snapshot.connectionState == ConnectionState.waiting) {[m
+[32m+[m[32m                  return const Center(child: CircularProgressIndicator());[m
+[32m+[m[32m                }[m
+[32m+[m[41m                [m
+[32m+[m[32m                if (!snapshot.hasData || snapshot.data!.isEmpty) {[m
+[32m+[m[32m                  return const Center([m
+[32m+[m[32m                    child: Text([m
+[32m+[m[32m                      'No messages yet. Start the conversation!',[m
+[32m+[m[32m                      style: TextStyle(color: Colors.grey),[m
+[32m+[m[32m                    ),[m
+[32m+[m[32m                  );[m
+[32m+[m[32m                }[m
+[32m+[m
+[32m+[m[32m                final messages = snapshot.data!;[m
+[32m+[m
+[32m+[m[32m                return ListView.builder([m
+[32m+[m[32m                  controller: _scrollController,[m
+[32m+[m[32m                  padding: const EdgeInsets.all(16),[m
+[32m+[m[32m                  itemCount: messages.length,[m
+[32m+[m[32m                  itemBuilder: (context, index) {[m
+[32m+[m[32m                    final message = messages[index];[m
+[32m+[m[32m                    final isMe = message.senderId == _currentUserId;[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    // Mark message as read if it's received and not read[m
+[32m+[m[32m                    if (!isMe && !message.isRead) {[m
+[32m+[m[32m                      final ids = [_currentUserId, widget.receiverId]..sort();[m
+[32m+[m[32m                      final conversationId = ids.join("_");[m
+[32m+[m[32m                      _chatService.markMessageAsRead([m
+[32m+[m[32m                        messageId: message.id,[m
+[32m+[m[32m                        conversationId: conversationId,[m
+[32m+[m[32m                      );[m
+[32m+[m[32m                    }[m
+[32m+[m
+[32m+[m[32m                    return MessageBubble([m
+[32m+[m[32m                      message: message,[m
+[32m+[m[32m                      isMe: isMe,[m
+[32m+[m[32m                      receiverName: widget.userName,[m
+[32m+[m[32m                    );[m
+[32m+[m[32m                  },[m
+[32m+[m[32m                );[m
+[32m+[m[32m              },[m
+[32m+[m[32m            ),[m
+[32m+[m[32m          ),[m
+[32m+[m[32m          ChatInput([m
+[32m+[m[32m            currentUserId: _currentUserId,[m
+[32m+[m[32m            receiverId: widget.receiverId,[m
+[32m+[m[32m            receiverName: widget.userName,[m
+[32m+[m[32m          ),[m
+[32m+[m[32m        ],[m
+       ),[m
+     );[m
+   }[m
+[1mdiff --git a/lib/screens/chats_screen.dart b/lib/screens/chats_screen.dart[m
+[1mindex a269f3e..0865827 100644[m
+[1m--- a/lib/screens/chats_screen.dart[m
+[1m+++ b/lib/screens/chats_screen.dart[m
+[36m@@ -1,15 +1,18 @@[m
+ import 'package:flutter/material.dart';[m
+[32m+[m[32mimport 'package:firebase_auth/firebase_auth.dart';[m
+ import '../services/chat_service.dart';[m
+ import '../models/chat_model.dart';[m
+ import 'chat_room_screen.dart';[m
+ import '../widgets/chat_tile.dart';[m
+ [m
+[31m-[m
+ class ChatsScreen extends StatelessWidget {[m
+   const ChatsScreen({super.key});[m
+ [m
+   @override[m
+   Widget build(BuildContext context) {[m
+[32m+[m[32m    final FirebaseAuth _auth = FirebaseAuth.instance;[m
+[32m+[m[32m    final String currentUserId = _auth.currentUser!.uid;[m
+[32m+[m
+     return Scaffold([m
+       appBar: AppBar([m
+         title: const Text("Chats"),[m
+[36m@@ -30,10 +33,10 @@[m [mclass ChatsScreen extends StatelessWidget {[m
+               ),[m
+             ),[m
+           ),[m
+[31m-          // List of users from Firestore[m
+[32m+[m[32m          // List of users from Firestore (excluding current user)[m
+           Expanded([m
+             child: StreamBuilder<List<ChatModel>>([m
+[31m-              stream: ChatService().getUsers(), // hii inarudisha stream ya Firestore[m
+[32m+[m[32m              stream: ChatService().getUsers(),[m
+               builder: (context, snapshot) {[m
+                 if (snapshot.connectionState == ConnectionState.waiting) {[m
+                   return const Center(child: CircularProgressIndicator());[m
+[36m@@ -42,7 +45,15 @@[m [mclass ChatsScreen extends StatelessWidget {[m
+                   return const Center(child: Text("No users available"));[m
+                 }[m
+ [m
+[31m-                final users = snapshot.data!;[m
+[32m+[m[32m                final users = snapshot.data![m
+[32m+[m[32m                    .where((user) => user.id != currentUserId)[m
+[32m+[m[32m                    .toList();[m
+[32m+[m
+[32m+[m[32m                if (users.isEmpty) {[m
+[32m+[m[32m                  return const Center([m
+[32m+[m[32m                    child: Text("No other users available"),[m
+[32m+[m[32m                  );[m
+[32m+[m[32m                }[m
+ [m
+                 return ListView.builder([m
+                   itemCount: users.length,[m
+[36m@@ -53,7 +64,11 @@[m [mclass ChatsScreen extends StatelessWidget {[m
+                       onTap: () {[m
+                         Navigator.of(context).push([m
+                           MaterialPageRoute([m
+[31m-                            builder: (_) => ChatRoomScreen(userName: user.name),[m
+[32m+[m[32m                            builder: (_) => ChatRoomScreen([m
+[32m+[m[32m                              userName: user.name,[m
+[32m+[m[32m                              receiverId: user.id,[m
+[32m+[m[32m                              receiverPhotoUrl: user.photoURL,[m
+[32m+[m[32m                            ),[m
+                           ),[m
+                         );[m
+                       },[m
+[36m@@ -67,4 +82,4 @@[m [mclass ChatsScreen extends StatelessWidget {[m
+       ),[m
+     );[m
+   }[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m}[m
+[1mdiff --git a/lib/services/chat_service.dart b/lib/services/chat_service.dart[m
+[1mindex 0e333f0..90c062e 100644[m
+[1m--- a/lib/services/chat_service.dart[m
+[1m+++ b/lib/services/chat_service.dart[m
+[36m@@ -1,5 +1,7 @@[m
+ import 'package:cloud_firestore/cloud_firestore.dart';[m
+ import '../models/chat_model.dart';[m
+[32m+[m[32mimport '../models/message_model.dart';[m
+[32m+[m[32mimport '../utils/constants.dart';[m
+ [m
+ class ChatService {[m
+   final FirebaseFirestore _firestore = FirebaseFirestore.instance;[m
+[36m@@ -7,7 +9,7 @@[m [mclass ChatService {[m
+   /// Stream ya kuvuta users wote kutoka Firestore kwa realtime[m
+   Stream<List<ChatModel>> getUsers() {[m
+     return _firestore[m
+[31m-        .collection('users')[m
+[32m+[m[32m        .collection(kUsersCollection)[m
+         .orderBy('createdAt', descending: true)[m
+         .snapshots()[m
+         .map((snapshot) {[m
+[36m@@ -18,16 +20,112 @@[m [mclass ChatService {[m
+     });[m
+   }[m
+ [m
+[32m+[m[32m  /// Stream ya kuvuta messages kati ya watumishi wawili[m
+[32m+[m[32m  Stream<List<MessageModel>> getMessages({[m
+[32m+[m[32m    required String currentUserId,[m
+[32m+[m[32m    required String otherUserId,[m
+[32m+[m[32m  }) {[m
+[32m+[m[32m    final ids = [currentUserId, otherUserId]..sort();[m
+[32m+[m[32m    final conversationId = ids.join("_");[m
+[32m+[m
+[32m+[m[32m    return _firestore[m
+[32m+[m[32m        .collection('conversations')[m
+[32m+[m[32m        .doc(conversationId)[m
+[32m+[m[32m        .collection('messages')[m
+[32m+[m[32m        .orderBy('timestamp')[m
+[32m+[m[32m        .snapshots()[m
+[32m+[m[32m        .map((snapshot) {[m
+[32m+[m[32m      return snapshot.docs.map((doc) {[m
+[32m+[m[32m        final data = doc.data();[m
+[32m+[m[32m        return MessageModel.fromMap(data, doc.id);[m
+[32m+[m[32m      }).toList();[m
+[32m+[m[32m    });[m
+[32m+[m[32m  }[m
+[32m+[m
+   /// Kuongeza user mpya (ikiwa unataka kuinsert manual)[m
+   Future<void> addUser(ChatModel user) async {[m
+[31m-    await _firestore.collection('users').doc(user.id).set(user.toMap());[m
+[32m+[m[32m    await _firestore.collection(kUsersCollection).doc(user.id).set(user.toMap());[m
+   }[m
+ [m
+   /// Kuupdate status ya user (mfano: online/offline)[m
+   Future<void> updateUserStatus(String userId, bool isOnline) async {[m
+[31m-    await _firestore.collection('users').doc(userId).update({[m
+[32m+[m[32m    await _firestore.collection(kUsersCollection).doc(userId).update({[m
+       'isOnline': isOnline,[m
+[31m-      'lastSeen': Timestamp.fromDate(DateTime.now()),[m
+[32m+[m[32m      'lastSeen': isOnline ? null : Timestamp.fromDate(DateTime.now()),[m
+[32m+[m[32m    });[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  /// Kutuma message kati ya watumishi wawili[m
+[32m+[m[32m  Future<void> sendMessage({[m
+[32m+[m[32m    required String senderId,[m
+[32m+[m[32m    required String receiverId,[m
+[32m+[m[32m    required String content,[m
+[32m+[m[32m  }) async {[m
+[32m+[m[32m    final ids = [senderId, receiverId]..sort();[m
+[32m+[m[32m    final conversationId = ids.join("_");[m
+[32m+[m
+[32m+[m[32m    final convoRef = _firestore[m
+[32m+[m[32m        .collection('conversations')[m
+[32m+[m[32m        .doc(conversationId);[m
+[32m+[m
+[32m+[m[32m    final messageRef = convoRef[m
+[32m+[m[32m        .collection('messages')[m
+[32m+[m[32m        .doc();[m
+[32m+[m
+[32m+[m[32m    await _firestore.runTransaction((transaction) async {[m
+[32m+[m[32m      // Update conversation metadata[m
+[32m+[m[32m      transaction.set(convoRef, {[m
+[32m+[m[32m        'participants': ids,[m
+[32m+[m[32m        'lastMessage': content,[m
+[32m+[m[32m        'lastTimestamp': Timestamp.fromDate(DateTime.now()),[m
+[32m+[m[32m      }, SetOptions(merge: true));[m
+[32m+[m
+[32m+[m[32m      // Add message[m
+[32m+[m[32m      transaction.set(messageRef, {[m
+[32m+[m[32m        'id': messageRef.id,[m
+[32m+[m[32m        'senderId': senderId,[m
+[32m+[m[32m        'receiverId': receiverId,[m
+[32m+[m[32m        'content': content,[m
+[32m+[m[32m        'timestamp': Timestamp.fromDate(DateTime.now()),[m
+[32m+[m[32m        'isRead': false,[m
+[32m+[m[32m        'messageType': 'text',[m
+[32m+[m[32m        'mediaUrl': null,[m
+[32m+[m[32m      });[m
+[32m+[m[32m    });[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  /// Kuupdate message kama imefikia (read)[m
+[32m+[m[32m  Future<void> mar
