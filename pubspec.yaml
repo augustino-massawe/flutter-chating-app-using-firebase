@@ -24,6 +24,8 @@ environment:
 flutter:
   assets:
     - assets/images/logo.jpg
+    - assets/icons/
+
 
 
 # Dependencies specify other packages that your package needs in order to work.
