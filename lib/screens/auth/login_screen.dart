@@ -8,7 +8,8 @@ import 'register_screen.dart';
 import '../home_screen.dart'; // badilisha import, sasa tunapeleka kwenye HomeScreen
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? initialEmail;
+  const LoginScreen({super.key, this.initialEmail});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -24,6 +25,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _hidePassword = true;
   bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Prefill email if provided (e.g., after registration)
+    if (widget.initialEmail != null && widget.initialEmail!.isNotEmpty) {
+      _emailController.text = widget.initialEmail!;
+    }
+  }
 
   @override
   void dispose() {
