@@ -22,6 +22,7 @@ environment:
   sdk: ">=3.9.2 <4.0.0"
 
 flutter:
+  uses-material-design: true
   assets:
     - assets/images/logo.jpg
     - assets/icons/
