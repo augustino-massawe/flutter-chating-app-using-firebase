@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/chat_service.dart';
 import '../models/chat_model.dart';
 import 'chat_room_screen.dart';
 import '../widgets/chat_tile.dart';
-
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final String currentUserId = _auth.currentUser!.uid;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chats"),
@@ -30,10 +33,10 @@ class ChatsScreen extends StatelessWidget {
               ),
             ),
           ),
-          // List of users from Firestore
+          // List of users from Firestore (excluding current user)
           Expanded(
             child: StreamBuilder<List<ChatModel>>(
-              stream: ChatService().getUsers(), // hii inarudisha stream ya Firestore
+              stream: ChatService().getUsers(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -42,7 +45,15 @@ class ChatsScreen extends StatelessWidget {
                   return const Center(child: Text("No users available"));
                 }
 
-                final users = snapshot.data!;
+                final users = snapshot.data!
+                    .where((user) => user.id != currentUserId)
+                    .toList();
+
+                if (users.isEmpty) {
+                  return const Center(
+                    child: Text("No other users available"),
+                  );
+                }
 
                 return ListView.builder(
                   itemCount: users.length,
@@ -53,7 +64,11 @@ class ChatsScreen extends StatelessWidget {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => ChatRoomScreen(userName: user.name),
+                            builder: (_) => ChatRoomScreen(
+                              userName: user.name,
+                              receiverId: user.id,
+                              receiverPhotoUrl: user.photoURL,
+                            ),
                           ),
                         );
                       },
