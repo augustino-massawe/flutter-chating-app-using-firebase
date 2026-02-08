@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "898315261765",
+    "project_id": "new-flutter-sms-app",
+    "storage_bucket": "new-flutter-sms-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:898315261765:android:e2f5c746577928e2b0d02c",
+        "android_client_info": {
+          "package_name": "com.example.flutter_chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBffmBDc1sQSDFrm6A1iho1hWc72lC9Lo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

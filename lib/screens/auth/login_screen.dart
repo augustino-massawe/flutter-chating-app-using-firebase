@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/custom_text_field.dart';
 import 'register_screen.dart';
+import '../home_screen.dart'; // badilisha import, sasa tunapeleka kwenye HomeScreen
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -69,11 +70,11 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful')),
       );
-      
-      // Navigate to main app (you'll need to implement this)
-      // For now, we'll just clear the form
-      _emailController.clear();
-      _passwordController.clear();
+
+      // Navigate to HomeScreen after successful login
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -148,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : Icons.visibility,
                           ),
                           tooltip:
-                              _hidePassword ? 'Show password' : 'Hide password',
+                          _hidePassword ? 'Show password' : 'Hide password',
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -165,10 +166,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           const Spacer(),
                           TextButton(
                             onPressed: () {
-                              // TODO: Implement forgot password functionality
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Forgot password feature coming soon'),
+                                  content: Text(
+                                      'Forgot password feature coming soon'),
                                 ),
                               );
                             },
@@ -189,14 +190,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: _isLoading
                             ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.white),
-                                ),
-                              )
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                            AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        )
                             : const Text('Sign In'),
                       ),
                       const SizedBox(height: 18),
