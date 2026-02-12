@@ -1,38 +1,63 @@
 name: flutter_chat_app
 description: "Chating App using Firebase"
-publish_to: 'none' # private project, not for pub.dev
+publish_to: 'none' # Private project (not published to pub.dev)
 
 version: 1.0.0+1
 
 environment:
+  # Supported Dart SDK versions
   sdk: ">=3.7.2 <4.0.0"
 
 flutter:
+  # Enable Material Design
   uses-material-design: true
 
-  # Assets
+  # Project assets
   assets:
     - assets/images/logo.jpg
     - assets/icons/
 
+
+# -----------------------------
 # Dependencies
+# -----------------------------
 dependencies:
   flutter:
     sdk: flutter
+
+  # Firebase Core (required for all Firebase services)
   firebase_core: ^4.4.0
+
+  # Firebase Authentication
   firebase_auth: any
+
+  # Cloud Firestore database
   cloud_firestore: any
+
+  # iOS-style icons
   cupertino_icons: ^1.0.8
+
+  # Internationalization and date formatting
   intl: ^0.20.2
 
-# Dev dependencies
+
+# -----------------------------
+# Development Dependencies
+# -----------------------------
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # Recommended lint rules for Flutter
   flutter_lints: 5.0.0
+
+  # Tool to generate launcher icons
   flutter_launcher_icons: ^0.11.0
 
-# Launcher icon configuration
+
+# -----------------------------
+# Launcher Icon Configuration
+# -----------------------------
 flutter_icons:
   android: true
   ios: true
