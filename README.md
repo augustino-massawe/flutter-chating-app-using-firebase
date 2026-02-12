@@ -2,8 +2,8 @@
 **Group No. 01**
 
 Flutter Firebase Chat App  is a real-time cross-platform mobile chat application developed using Flutter and Firebase, built to showcase how modern cloud technologies can be used to create a secure, scalable, and responsive messaging system. The app supports user authentication, instant real-time messaging, and push notifications, ensuring users can communicate seamlessly with low-latency updates across devices. This project demonstrates practical implementation of Firebase services for backend management, real-time data synchronization, and secure user handling in a modern Flutter mobile application.
----
 
+---
 ## Overview
 
 This application allows users to create accounts, securely log in, and exchange messages with other users in real time. It is powered by Firebase services to provide fast and reliable message delivery, secure authentication, and seamless cloud-based data synchronization. 
@@ -102,6 +102,7 @@ flutter pub get
 ### 3. **Set Up Firebase for the Project**
 
 This project requires Firebase configuration to enable authentication, Firestore, and push notifications.
+
 ![23443](https://github.com/user-attachments/assets/9c559059-fce7-4b97-8c4d-2bf75c00658c)
 
 Steps:
