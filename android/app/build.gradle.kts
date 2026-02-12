@@ -1,49 +1,63 @@
 plugins {
+    // Android application plugin
     id("com.android.application")
-    // START: FlutterFire Configuration
+
+    // Required for Firebase (processes google-services.json)
     id("com.google.gms.google-services")
-    // END: FlutterFire Configuration
+
+    // Kotlin support for Android
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+
+    // Flutter Gradle plugin (must be applied after Android & Kotlin plugins)
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
+    // Application namespace (package name)
     namespace = "com.example.flutter_chat_app"
+
+    // Compile SDK version provided by Flutter
     compileSdk = flutter.compileSdkVersion
+
+    // Specify NDK version for native dependencies compatibility
     ndkVersion = "27.0.12077973"
 
+    // Java compatibility options (required for modern Flutter/AGP versions)
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // Kotlin JVM target version
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Unique Application ID (change this before publishing)
         applicationId = "com.example.flutter_chat_app"
 
-        // ILIKUWA: minSdk = flutter.minSdkVersion
-        // IMEBADILISHWA KUWA 23 kurekebisha kosa la Firebase Auth
+        // Minimum Android version supported (API 23 required for Firebase Auth)
         minSdk = 23
 
+        // Target SDK version provided by Flutter
         targetSdk = flutter.targetSdkVersion
+
+        // App versioning (managed by Flutter)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // TODO: Replace with your own signing configuration for production
+            // Currently using debug signing to allow `flutter run --release`
             signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
 
 flutter {
+    // Path to Flutter project root
     source = "../.."
 }
