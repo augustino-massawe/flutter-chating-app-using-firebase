@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../screens/auth/login_screen.dart';
+import 'help_support_screen.dart'; // 👈 NEW IMPORT
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -9,6 +11,27 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+
+  Future<void> _handleLogout() async {
+    try {
+      await AuthService().signOut();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+      );
+
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
 
           // Settings Options
@@ -71,9 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text("Profile"),
                   subtitle: const Text("View and edit your profile"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    // Navigate to profile screen
-                  },
+                  onTap: () {},
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -81,9 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text("Notifications"),
                   subtitle: const Text("Manage notification settings"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    // Navigate to notifications settings
-                  },
+                  onTap: () {},
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -91,18 +110,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text("Privacy"),
                   subtitle: const Text("Manage your privacy settings"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    // Navigate to privacy settings
-                  },
+                  onTap: () {},
                 ),
                 const Divider(height: 1),
+
+                // 👇 HELP & SUPPORT NAVIGATION ADDED
                 ListTile(
                   leading: const Icon(Icons.help, color: Colors.purple),
                   title: const Text("Help & Support"),
                   subtitle: const Text("Get help and support"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // Navigate to help section
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HelpSupportScreen(),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -123,18 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-                  onTap: () async {
-                try {
-                  await AuthService().signOut();
-                  // Navigate to login screen
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Logout failed: $e')),
-                    );
-                  }
-                }
-              },
+              onTap: _handleLogout,
             ),
           ),
         ],
