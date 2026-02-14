@@ -150,6 +150,51 @@ class ChatService {
     });
   }
 
+  /// Kuhesabu ujumbe usioisomwa kwa conversation moja
+  Future<int> getUnreadCount(String currentUserId, String otherUserId) async {
+    try {
+      final ids = [currentUserId, otherUserId]..sort();
+      final conversationId = ids.join("_");
+
+      final snapshot = await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .collection('messages')
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      return snapshot.docs.length;
+    } catch (e) {
+      print('Error getting unread count: $e');
+      return 0;
+    }
+  }
+
+  /// Kuupdate kila ujumbe kama imefikia (read) kwa conversation moja
+  Future<void> markAllMessagesAsRead(String currentUserId, String otherUserId) async {
+    try {
+      final ids = [currentUserId, otherUserId]..sort();
+      final conversationId = ids.join("_");
+
+      final snapshot = await _firestore
+          .collection('conversations')
+          .doc(conversationId)
+          .collection('messages')
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in snapshot.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+      await batch.commit();
+    } catch (e) {
+      print('Error marking messages as read: $e');
+    }
+  }
+
   /// Kuvuta conversation data kwa user fulani
   Future<Map<String, dynamic>?> getConversationData(String currentUserId, String otherUserId) async {
     try {
