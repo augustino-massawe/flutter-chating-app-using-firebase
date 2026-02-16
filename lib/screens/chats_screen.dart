@@ -489,7 +489,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
       final lastMessage = conversation['lastMessage'] as String? ?? 'No message';
       final lastTimestamp = conversation['lastTimestamp'] as Timestamp?;
-      final unreadCount = await _getUnreadCount(currentUserId, otherUserId);
+      final unreadCount = await ChatService().getUnreadCount(currentUserId, otherUserId);
 
       result.add(_ConversationData(
         user: user,
@@ -500,24 +500,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
     }
 
     return result;
-  }
-
-  Future<int> _getUnreadCount(String currentUserId, String otherUserId) async {
-    try {
-      final chatId = _getChatId(currentUserId, otherUserId);
-      final snapshot = await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .where('receiverId', isEqualTo: currentUserId)
-          .where('isRead', isEqualTo: false)
-          .get();
-
-      return snapshot.docs.length;
-    } catch (e) {
-      print('Error getting unread count: $e');
-      return 0;
-    }
   }
 
   String _getChatId(String userId1, String userId2) {

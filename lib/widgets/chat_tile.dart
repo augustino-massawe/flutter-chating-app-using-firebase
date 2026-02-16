@@ -7,12 +7,14 @@ class ChatTile extends StatelessWidget {
   final ChatModel chat;
   final VoidCallback onTap;
   final String currentUserId;
+  final int unreadCount;
 
   const ChatTile({
     super.key,
     required this.chat,
     required this.onTap,
     required this.currentUserId,
+    required this.unreadCount,
   });
 
   @override
@@ -102,15 +104,45 @@ class ChatTile extends StatelessWidget {
 
   Widget _buildEmptyTile() {
     return ListTile(
-      leading: CircleAvatar(
-        radius: 25,
-        backgroundColor: Colors.grey[300],
-        backgroundImage: chat.photoURL != null 
-            ? NetworkImage(chat.photoURL!) 
-            : null,
-        child: chat.photoURL == null 
-            ? Icon(Icons.person, size: 30, color: Colors.white) 
-            : null,
+      leading: Stack(
+        children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.grey[300],
+            backgroundImage: chat.photoURL != null 
+                ? NetworkImage(chat.photoURL!) 
+                : null,
+            child: chat.photoURL == null 
+                ? Icon(Icons.person, size: 30, color: Colors.white) 
+                : null,
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Center(
+                  child: Text(
+                    unreadCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       title: Text(
         chat.name,
@@ -170,15 +202,45 @@ class ChatTile extends StatelessWidget {
     int? messageCount,
   }) {
     return ListTile(
-      leading: CircleAvatar(
-        radius: 25,
-        backgroundColor: Colors.grey[300],
-        backgroundImage: chat.photoURL != null 
-            ? NetworkImage(chat.photoURL!) 
-            : null,
-        child: chat.photoURL == null 
-            ? Icon(Icons.person, size: 30, color: Colors.white) 
-            : null,
+      leading: Stack(
+        children: [
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.grey[300],
+            backgroundImage: chat.photoURL != null 
+                ? NetworkImage(chat.photoURL!) 
+                : null,
+            child: chat.photoURL == null 
+                ? Icon(Icons.person, size: 30, color: Colors.white) 
+                : null,
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: Center(
+                  child: Text(
+                    unreadCount.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       title: Text(
         chat.name,
