@@ -39,6 +39,7 @@ dependencies:
 
   # Internationalization and date formatting
   intl: ^0.20.2
+  shared_preferences: ^2.0.15
 
 
 # -----------------------------

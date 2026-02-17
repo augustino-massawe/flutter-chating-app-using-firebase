@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/theme_service.dart';
 import '../screens/auth/login_screen.dart';
 import 'help_support_screen.dart'; // 👈 NEW IMPORT
+import 'privacy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -84,6 +86,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 16),
 
+          // Theme selection (System / Light / Dark)
+          Card(
+            elevation: 2,
+            child: ValueListenableBuilder<ThemeMode>(
+              valueListenable: ThemeService.themeNotifier,
+              builder: (context, mode, _) {
+                return Column(
+                  children: [
+                    RadioListTile<ThemeMode>(
+                      title: const Text('System Default'),
+                      secondary: const Icon(Icons.phone_android),
+                      value: ThemeMode.system,
+                      groupValue: mode,
+                      onChanged: (v) {
+                        if (v != null) ThemeService.setTheme(v);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    RadioListTile<ThemeMode>(
+                      title: const Text('Light (Default)'),
+                      secondary: const Icon(Icons.wb_sunny),
+                      value: ThemeMode.light,
+                      groupValue: mode,
+                      onChanged: (v) {
+                        if (v != null) ThemeService.setTheme(v);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    RadioListTile<ThemeMode>(
+                      title: const Text('Dark'),
+                      secondary: const Icon(Icons.nights_stay),
+                      value: ThemeMode.dark,
+                      groupValue: mode,
+                      onChanged: (v) {
+                        if (v != null) ThemeService.setTheme(v);
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+
           // Settings Options
           Card(
             elevation: 2,
@@ -110,7 +156,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text("Privacy"),
                   subtitle: const Text("Manage your privacy settings"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PrivacyScreen()),
+                    );
+                  },
                 ),
                 const Divider(height: 1),
 
