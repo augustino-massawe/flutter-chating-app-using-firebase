@@ -22,6 +22,18 @@ Key capabilities include:
 * Secure **sign-up** and **login** using Firebase Authentication
 * **Email and password-based authentication** with Firebase-managed security
 * Persistent login sessions, so users don’t need to sign in repeatedly
+* # The application includes a secure authentication system powered by Firebase Authentication,
+# allowing users to safely create accounts, log in, and reset forgotten passwords.
+# Firebase handles password encryption, session management, and authentication validation,
+# ensuring user data is protected and access is restricted only to authorized users.
+
+# Key capabilities include:
+# * Secure sign-up and login using Firebase Authentication
+# * Email and password-based authentication with Firebase-managed security
+# * Persistent login sessions, so users don’t need to sign in repeatedly
+# * Password reset functionality, allowing users to recover their accounts if they forget their password
+#   - Users receive a password reset email to set a new password securely
+
 
 ---
 

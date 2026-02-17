@@ -43,6 +43,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     
     // Mark user as online
     _chatService.updateUserStatus(_currentUserId, true);
+    
+    // Mark all messages as read when opening chat
+    _markAllMessagesAsRead();
+  }
+
+  void _markAllMessagesAsRead() async {
+    await _chatService.markAllMessagesAsRead(_currentUserId, widget.receiverId);
   }
 
   @override
