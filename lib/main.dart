@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'screens/auth/splash_screen.dart';
 import 'firebase_options.dart';
+import 'services/theme_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ void main() async {
     debugPrint("Firebase initialization failed: $e");
   }
 
+  // Load persisted theme preference before running the app
+  await ThemeService.init();
+
   runApp(MyApp(firebaseConnected: firebaseConnected));
 }
 
@@ -29,13 +33,26 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Chat App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: SplashScreen(firebaseConnected: firebaseConnected),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeService.themeNotifier,
+      builder: (context, currentMode, _) {
+        return MaterialApp(
+          title: 'Flutter Chat App',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            colorScheme:
+                ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
+            useMaterial3: true,
+          ),
+          themeMode: currentMode,
+          home: SplashScreen(firebaseConnected: firebaseConnected),
+        );
+      },
     );
   }
 }
