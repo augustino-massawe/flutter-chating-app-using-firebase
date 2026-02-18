@@ -11,6 +11,9 @@ environment:
 flutter:
   # Enable Material Design
   uses-material-design: true
+  
+  # Enable localization
+  generate: true
 
   # Project assets
   assets:
@@ -23,6 +26,10 @@ flutter:
 # -----------------------------
 dependencies:
   flutter:
+    sdk: flutter
+
+  # Localization
+  flutter_localizations:
     sdk: flutter
 
   # Firebase Core (required for all Firebase services)

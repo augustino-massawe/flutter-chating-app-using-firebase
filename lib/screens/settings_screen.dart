@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/theme_service.dart';
+import '../services/language_service.dart';
 import '../screens/auth/login_screen.dart';
-import 'help_support_screen.dart'; // 👈 NEW IMPORT
+import '../utils/app_localizations.dart';
+import 'help_support_screen.dart';
 import 'privacy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -36,9 +38,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Settings"),
+        title: Text(loc.settings),
         centerTitle: true,
       ),
       body: ListView(
@@ -60,27 +63,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           "User Profile",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           "Manage your account settings",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Language Selection
+          Card(
+            elevation: 2,
+            child: ValueListenableBuilder<Locale>(
+              valueListenable: LanguageService.localeNotifier,
+              builder: (context, locale, _) {
+                return Column(
+                  children: [
+                    RadioListTile<String>(
+                      title: Text(loc.english),
+                      secondary: const Icon(Icons.language),
+                      value: 'en',
+                      groupValue: locale.languageCode,
+                      onChanged: (v) {
+                        if (v != null) LanguageService.setLanguage(v);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    RadioListTile<String>(
+                      title: Text(loc.swahili),
+                      secondary: const Icon(Icons.language),
+                      value: 'sw',
+                      groupValue: locale.languageCode,
+                      onChanged: (v) {
+                        if (v != null) LanguageService.setLanguage(v);
+                      },
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -129,6 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
+          const SizedBox(height: 16),
 
           // Settings Options
           Card(
@@ -191,9 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             elevation: 2,
             child: ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text(
-                "Logout",
-                style: TextStyle(
+              title: Text(
+                loc.logout,
+                style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
                 ),

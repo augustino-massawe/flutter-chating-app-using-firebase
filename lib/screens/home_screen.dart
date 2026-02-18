@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_localizations.dart';
 import 'chats_screen.dart';
 import 'users_screen.dart';
 import 'settings_screen.dart';
@@ -55,21 +56,21 @@ class _HomeScreenState extends State<HomeScreen> {
           fontSize: 11,
         ),
 
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Chats',
+            icon: const Icon(Icons.chat_bubble_outline),
+            activeIcon: const Icon(Icons.chat_bubble),
+            label: AppLocalizations.of(context).chats,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            activeIcon: Icon(Icons.people),
-            label: 'Users',
+            icon: const Icon(Icons.people_outline),
+            activeIcon: const Icon(Icons.people),
+            label: AppLocalizations.of(context).users,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            activeIcon: const Icon(Icons.settings),
+            label: AppLocalizations.of(context).settings,
           ),
         ],
       ),

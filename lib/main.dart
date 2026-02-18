@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'screens/auth/splash_screen.dart';
 import 'firebase_options.dart';
 import 'services/theme_service.dart';
+import 'services/language_service.dart';
+import 'utils/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +26,9 @@ void main() async {
 
   // Load persisted theme preference before running the app
   await ThemeService.init();
+  
+  // Load persisted language preference before running the app
+  await LanguageService.init();
 
   runApp(MyApp(firebaseConnected: firebaseConnected));
 }
@@ -36,21 +42,37 @@ class MyApp extends StatelessWidget {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: ThemeService.themeNotifier,
       builder: (context, currentMode, _) {
-        return MaterialApp(
-          title: 'Flutter Chat App',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            colorScheme:
-                ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
-            useMaterial3: true,
-          ),
-          themeMode: currentMode,
-          home: SplashScreen(firebaseConnected: firebaseConnected),
+        return ValueListenableBuilder<Locale>(
+          valueListenable: LanguageService.localeNotifier,
+          builder: (context, locale, _) {
+            return MaterialApp(
+              title: 'Flutter Chat App',
+              debugShowCheckedModeBanner: false,
+              locale: locale,
+              localizationsDelegates: const [
+                AppLocalizationsDelegate(),
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'),
+                Locale('sw'),
+              ],
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                useMaterial3: true,
+              ),
+              darkTheme: ThemeData(
+                brightness: Brightness.dark,
+                colorScheme:
+                    ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
+                useMaterial3: true,
+              ),
+              themeMode: currentMode,
+              home: SplashScreen(firebaseConnected: firebaseConnected),
+            );
+          },
         );
       },
     );
