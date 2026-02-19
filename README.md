@@ -1,12 +1,28 @@
-#GROUP MEMBERS AND THEIR NAMES 
-1.harryhagai => HAGAI HAROLD NGOBEY NIT/BIT/2023/2185
-2.osmark764-2342 =>MARTIN MARKO SHELUKINDO NIT/BIT/2023/2342
-3.INNOVATOR90 =>MUSTAFA HABIBU PINGILI NIT/BIT/2023/2040
-
 # Flutter Chat App using Firebase
 **Group No. 01**
 
 Flutter Firebase Chat App  is a real-time cross-platform mobile chat application developed using Flutter and Firebase, built to showcase how modern cloud technologies can be used to create a secure, scalable, and responsive messaging system. The app supports user authentication, instant real-time messaging, and push notifications, ensuring users can communicate seamlessly with low-latency updates across devices. This project demonstrates practical implementation of Firebase services for backend management, real-time data synchronization, and secure user handling in a modern Flutter mobile application.
+
+## GROUP MEMBERS
+| S/N | Username           | Full Name           | Registration Number      |
+|-----|------------------|-------------------|-------------------------|
+| 1   | DARSTORE17        | David Daniel Makuri | NIT/BIT/2023/2305       |
+| 2   | Nestory45         | Nesta Jackson      | NIT/BIT/2023/2228       |
+| 3   | augustino-massawe | Augustino Massawe  | NIT/BIT/2022/1773       |
+| 4   | osmark764-2342    | Martin Shelukindo  | NIT/BIT/2023/2342       |
+| 5   | salmakagogo       | Salma Kagogo       | NIT/BIT/2023/2058       |
+| 6   | Shubi09           | Peter Shubi        | NIT/BIT/2022/1897       |
+| 7   | MKIZA2003         | Samson Nilibe      | NIT/BIT/2023/2371       |
+| 8   | Martha09-lee      | Martha Masinda     | NIT/BIT/2023/2190       |
+| 9   | lulukway3-svg     | Lulu Kway          | NIT/BIT/2023/2366       |
+| 10  | Laizersekino      | Sekino Laizer      | NIT/BIT/2023/2279       |
+| 11  | INNOVATOR90       | Mustafa Pingili    | NIT/BIT/2023/2040       |
+| 12  | HidayaNuruHussein | Hidaya Hussein     | NIT/BIT/2023/2155       |
+| 13  | harryhagai        | Hagai Ngobey       | NIT/BIT/2023/2185       |
+| 14  | aminaiddy         | Amina Iddi         | NIT/BIT/2023/2043       |
+| 15  | Dean-mongi        | Dean Mongi         | NIT/BIT/2023/2039       |
+| 16  | Frencknyondo      | Frank Nyondo       | NIT/BIT/2023/2092       |
+---
 
 ### Screenshots
 <!-- Second row: 2 images -->
