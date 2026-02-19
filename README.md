@@ -13,7 +13,7 @@ Flutter Firebase Chat App  is a real-time cross-platform mobile chat application
 
 <!-- First row: 3 images -->
 <p float="left">
-  <img src="https://i.postimg.cc/05CxxqQ1/3.jpg" width="30%" />
+  <img src="https://i.postimg.cc/RVFrB6yQ/5.jpg" width="30%" />
   <img src="https://i.postimg.cc/CKDTQ3t6/4.jpg" width="30%" />
   <img src="https://i.postimg.cc/gkgb1q0y/7.png" width="30%" />
 </p>
