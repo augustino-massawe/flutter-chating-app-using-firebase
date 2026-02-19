@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/chat_service.dart';
-import 'package:flutter_chat_app/utils/constants.dart';
 
 class ChatInput extends StatefulWidget {
   final String currentUserId;

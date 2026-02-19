@@ -5,7 +5,6 @@ import '../../services/auth_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/custom_text_field.dart';
 import 'register_screen.dart';
-import '../home_screen.dart'; // badilisha import, sasa tunapeleka kwenye HomeScreen
 
 class LoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -24,11 +23,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   bool _hidePassword = true;
-  bool _rememberMe = false;
+
+  // ── Removed _rememberMe — persistence is handled globally by
+  //    Persistence.LOCAL in main.dart, so every login is automatically
+  //    remembered. No checkbox needed.
 
   @override
   void initState() {
     super.initState();
+
+    // ── Persistent Auth Guard ───────────────────────────────────────────────
+    // If the user already has an active session and somehow lands on
+    // LoginScreen, redirect them straight to Home immediately.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
+
     // Prefill email if provided (e.g., after registration)
     if (widget.initialEmail != null && widget.initialEmail!.isNotEmpty) {
       _emailController.text = widget.initialEmail!;
@@ -72,19 +85,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authService.signInWithEmail(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful')),
       );
 
-      // Navigate to HomeScreen after successful login
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      // ── Navigate via named route so AuthGate stays in sync ────────────────
+      // Using pushReplacementNamed instead of MaterialPageRoute so the
+      // navigation stack is clean and AuthGate's stream controls future routing.
+      Navigator.pushReplacementNamed(context, '/home');
+
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,9 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(content: Text('Login failed: $e')),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -132,9 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Please sign in to continue',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                        ),
+                        style: TextStyle(color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 28),
                       CustomTextField(
@@ -159,27 +170,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : Icons.visibility,
                           ),
                           tooltip:
-                          _hidePassword ? 'Show password' : 'Hide password',
+                              _hidePassword ? 'Show password' : 'Hide password',
                         ),
                       ),
                       const SizedBox(height: 14),
+
+                      // ── Remember Me removed ─────────────────────────────
+                      // Firebase Persistence.LOCAL (set in main.dart) means
+                      // every login is automatically persistent — users are
+                      // always remembered across app restarts by default.
+
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Checkbox(
-                            value: _rememberMe,
-                            onChanged: (value) {
-                              setState(() => _rememberMe = value ?? false);
-                            },
-                            activeColor: Colors.black,
-                          ),
-                          const Text('Remember me'),
-                          const Spacer(),
                           TextButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                      'Forgot password feature coming soon'),
+                                    'Forgot password feature coming soon',
+                                  ),
                                 ),
                               );
                             },
@@ -187,6 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
+
                       const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: _isLoading ? null : _submit,
@@ -200,14 +211,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: _isLoading
                             ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                            AlwaysStoppedAnimation(Colors.white),
-                          ),
-                        )
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
                             : const Text('Sign In'),
                       ),
                       const SizedBox(height: 18),

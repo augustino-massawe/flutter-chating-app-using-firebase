@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/chat_service.dart';
+import '../services/notification_service.dart';
 import '../models/chat_model.dart';
 import 'chat_room_screen.dart';
-import '../widgets/chat_tile.dart';
 import 'users_screen.dart';
 import 'auth/login_screen.dart';
 
@@ -16,7 +16,6 @@ class ChatsScreen extends StatefulWidget {
 }
 
 class _ChatsScreenState extends State<ChatsScreen> {
-  // Modern color scheme
   static const Color primaryBlue = Color(0xFF0088CC);
   static const Color accentBlue = Color(0xFF2AABEE);
   static const Color backgroundColor = Color(0xFFF5F5F5);
@@ -35,8 +34,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
-    final String currentUserId = _auth.currentUser!.uid;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final String currentUserId = auth.currentUser!.uid;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -45,7 +44,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         backgroundColor: cardColor,
         leading: IconButton(
           icon: Icon(Icons.menu, color: textPrimary),
-          onPressed: () => _showMenuBottomSheet(context, _auth),
+          onPressed: () => _showMenuBottomSheet(context, auth),
         ),
         title: const Text(
           "Chats",
@@ -72,7 +71,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         color: Colors.grey[300],
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.person, color: Colors.grey[600], size: 20),
+                      child: Icon(Icons.person,
+                          color: Colors.grey[600], size: 20),
                     );
                   }
                   final user = snapshot.data!;
@@ -81,7 +81,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                     height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: primaryBlue.withOpacity(0.3), width: 2),
+                      border: Border.all(
+                          color: primaryBlue.withOpacity(0.3), width: 2),
                     ),
                     child: CircleAvatar(
                       backgroundColor: Colors.grey[200],
@@ -89,7 +90,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           ? NetworkImage(user.photoURL!)
                           : null,
                       child: user.photoURL == null
-                          ? Icon(Icons.person, color: Colors.grey[600], size: 20)
+                          ? Icon(Icons.person,
+                              color: Colors.grey[600], size: 20)
                           : null,
                     ),
                   );
@@ -99,10 +101,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
           ),
         ],
       ),
-
       body: Column(
         children: [
-          // Search bar with modern design
+          // Search bar
           Container(
             color: cardColor,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -120,27 +121,32 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 },
                 decoration: InputDecoration(
                   hintText: "Search conversations...",
-                  hintStyle: TextStyle(color: textSecondary.withOpacity(0.6), fontSize: 15),
-                  prefixIcon: Icon(Icons.search, color: textSecondary, size: 22),
+                  hintStyle: TextStyle(
+                      color: textSecondary.withOpacity(0.6), fontSize: 15),
+                  prefixIcon:
+                      Icon(Icons.search, color: textSecondary, size: 22),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                    icon: Icon(Icons.clear, color: textSecondary, size: 20),
-                    onPressed: () {
-                      setState(() {
-                        _searchController.clear();
-                        _searchQuery = '';
-                      });
-                    },
-                  )
+                          icon: Icon(Icons.clear,
+                              color: textSecondary, size: 20),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _searchQuery = '';
+                            });
+                          },
+                        )
                       : null,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                 ),
               ),
             ),
           ),
 
-          // Conversations list
+          // Conversations list — uses StreamBuilder so unread counts
+          // update in real-time without needing to restart the screen
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: ChatService().getConversations(currentUserId),
@@ -148,7 +154,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(primaryBlue),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(primaryBlue),
                     ),
                   );
                 }
@@ -188,56 +195,51 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 final conversations = snapshot.data!;
 
                 return FutureBuilder<List<_ConversationData>>(
-                  future: _prepareConversations(conversations, currentUserId),
+                  future:
+                      _prepareConversations(conversations, currentUserId),
                   builder: (context, conversationsSnapshot) {
-                    if (conversationsSnapshot.connectionState == ConnectionState.waiting) {
+                    if (conversationsSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return ListView.builder(
                         padding: const EdgeInsets.only(top: 8),
                         itemCount: 5,
-                        itemBuilder: (context, index) => _buildSkeletonConversationTile(),
+                        itemBuilder: (context, index) =>
+                            _buildSkeletonTile(),
                       );
                     }
 
-                    if (!conversationsSnapshot.hasData || conversationsSnapshot.data!.isEmpty) {
-                      return const Center(child: Text("No conversations found"));
+                    if (!conversationsSnapshot.hasData ||
+                        conversationsSnapshot.data!.isEmpty) {
+                      return const Center(
+                          child: Text("No conversations found"));
                     }
 
-                    var filteredConversations = conversationsSnapshot.data!;
+                    var filtered = conversationsSnapshot.data!;
 
-                    // Apply search filter
                     if (_searchQuery.isNotEmpty) {
-                      filteredConversations = filteredConversations.where((conv) {
-                        return conv.user.name.toLowerCase().contains(_searchQuery) ||
-                            conv.lastMessage.toLowerCase().contains(_searchQuery);
+                      filtered = filtered.where((conv) {
+                        return conv.user.name
+                                .toLowerCase()
+                                .contains(_searchQuery) ||
+                            conv.lastMessage
+                                .toLowerCase()
+                                .contains(_searchQuery);
                       }).toList();
                     }
 
-                    if (filteredConversations.isEmpty && _searchQuery.isNotEmpty) {
+                    if (filtered.isEmpty && _searchQuery.isNotEmpty) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: textSecondary.withOpacity(0.3),
-                            ),
+                            Icon(Icons.search_off,
+                                size: 64,
+                                color: textSecondary.withOpacity(0.3)),
                             const SizedBox(height: 16),
                             Text(
                               'No results found',
                               style: TextStyle(
-                                fontSize: 16,
-                                color: textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Try searching with different keywords',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: textSecondary.withOpacity(0.7),
-                              ),
+                                  fontSize: 16, color: textSecondary),
                             ),
                           ],
                         ),
@@ -246,14 +248,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
                     return ListView.builder(
                       padding: const EdgeInsets.only(top: 8),
-                      itemCount: filteredConversations.length,
+                      itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        final convData = filteredConversations[index];
+                        final conv = filtered[index];
                         return _buildConversationTile(
-                          convData.user,
-                          convData.lastMessage,
-                          convData.lastTimestamp,
-                          convData.unreadCount,
+                          conv.user,
+                          conv.lastMessage,
+                          conv.lastTimestamp,
+                          conv.unreadCount,
+                          conv.conversationId,
                           currentUserId,
                         );
                       },
@@ -265,8 +268,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
           ),
         ],
       ),
-
-      // Modern floating action button
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -280,36 +281,30 @@ class _ChatsScreenState extends State<ChatsScreen> {
         ),
         child: FloatingActionButton(
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => UsersScreen()),
-            );
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => UsersScreen()));
           },
           backgroundColor: primaryBlue,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.edit_outlined,
-            color: Colors.white,
-            size: 24,
-          ),
+              borderRadius: BorderRadius.circular(16)),
+          child: const Icon(Icons.edit_outlined,
+              color: Colors.white, size: 24),
         ),
       ),
     );
   }
 
-  // --------- CONVERSATION TILE BUILDER ---------
-
+  // ── Conversation tile ────────────────────────────────────────────────────
   Widget _buildConversationTile(
-      ChatModel user,
-      String lastMessage,
-      Timestamp? lastTimestamp,
-      int unreadCount,
-      String currentUserId,
-      ) {
+    ChatModel user,
+    String lastMessage,
+    Timestamp? lastTimestamp,
+    int unreadCount,
+    String conversationId,
+    String currentUserId,
+  ) {
     String timeText = '';
-
     if (lastTimestamp != null) {
       final now = DateTime.now();
       final messageDate = lastTimestamp.toDate();
@@ -329,21 +324,16 @@ class _ChatsScreenState extends State<ChatsScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
       decoration: BoxDecoration(
         color: cardColor,
         border: Border(
-          bottom: BorderSide(
-            color: backgroundColor,
-            width: 1,
-          ),
-        ),
+            bottom: BorderSide(color: backgroundColor, width: 1)),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
+          onTap: () async {
+            await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => ChatRoomScreen(
                   userName: user.name,
@@ -352,31 +342,28 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 ),
               ),
             );
+            // ✅ Refresh list when coming back from chat
+            // so unread badge clears immediately
+            if (mounted) setState(() {});
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 // Avatar with online indicator
                 Stack(
                   children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.grey[200],
-                      ),
-                      child: CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage: user.photoURL != null
-                            ? NetworkImage(user.photoURL!)
-                            : null,
-                        child: user.photoURL == null
-                            ? Icon(Icons.person, color: Colors.grey[600], size: 28)
-                            : null,
-                      ),
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.grey[300],
+                      backgroundImage: user.photoURL != null
+                          ? NetworkImage(user.photoURL!)
+                          : null,
+                      child: user.photoURL == null
+                          ? Icon(Icons.person,
+                              color: Colors.grey[600], size: 28)
+                          : null,
                     ),
                     if (user.isOnline)
                       Positioned(
@@ -386,19 +373,18 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           width: 14,
                           height: 14,
                           decoration: BoxDecoration(
-                            color: Color(0xFF4CAF50),
+                            color: const Color(0xFF4CAF50),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: cardColor,
-                              width: 2,
-                            ),
+                            border:
+                                Border.all(color: cardColor, width: 2),
                           ),
                         ),
                       ),
                   ],
                 ),
                 const SizedBox(width: 12),
-                // Name and message
+
+                // Name + last message
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,7 +393,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         user.name,
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: unreadCount > 0 ? FontWeight.w700 : FontWeight.w600,
+                          fontWeight: unreadCount > 0
+                              ? FontWeight.w700
+                              : FontWeight.w600,
                           color: textPrimary,
                         ),
                         maxLines: 1,
@@ -420,8 +408,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
-                          color: unreadCount > 0 ? textPrimary : textSecondary,
-                          fontWeight: unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
+                          color: unreadCount > 0
+                              ? textPrimary
+                              : textSecondary,
+                          fontWeight: unreadCount > 0
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                           height: 1.3,
                         ),
                       ),
@@ -429,7 +421,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Time and unread badge
+
+                // Time + unread badge
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -438,15 +431,21 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       timeText,
                       style: TextStyle(
                         fontSize: 12,
-                        color: unreadCount > 0 ? primaryBlue : textSecondary.withOpacity(0.8),
-                        fontWeight: unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
+                        color: unreadCount > 0
+                            ? primaryBlue
+                            : textSecondary.withOpacity(0.8),
+                        fontWeight: unreadCount > 0
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                     ),
                     if (unreadCount > 0) ...[
                       const SizedBox(height: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        constraints: const BoxConstraints(minWidth: 20),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        constraints:
+                            const BoxConstraints(minWidth: 20),
                         decoration: BoxDecoration(
                           color: primaryBlue,
                           borderRadius: BorderRadius.circular(10),
@@ -472,12 +471,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
-  // --------- HELPERS ---------
-
+  // ── Prepare conversations with correct unread counts ──────────────────
   Future<List<_ConversationData>> _prepareConversations(
-      List<Map<String, dynamic>> conversations,
-      String currentUserId,
-      ) async {
+    List<Map<String, dynamic>> conversations,
+    String currentUserId,
+  ) async {
     List<_ConversationData> result = [];
 
     for (var conversation in conversations) {
@@ -487,53 +485,58 @@ class _ChatsScreenState extends State<ChatsScreen> {
       final user = await _getUserData(otherUserId);
       if (user == null) continue;
 
-      final lastMessage = conversation['lastMessage'] as String? ?? 'No message';
-      final lastTimestamp = conversation['lastTimestamp'] as Timestamp?;
-      final unreadCount = await _getUnreadCount(currentUserId, otherUserId);
+      final lastMessage =
+          conversation['lastMessage'] as String? ?? 'No message';
+      final lastTimestamp =
+          conversation['lastTimestamp'] as Timestamp?;
+
+      // ✅ conversationId from getConversations() — same format
+      // as chat_service.dart: sorted UIDs joined with "_"
+      final conversationId =
+          conversation['conversationId'] as String? ?? '';
+
+      // ✅ Fixed: query correct collection 'conversations' not 'chats'
+      final unreadCount =
+          await _getUnreadCount(conversationId, currentUserId);
 
       result.add(_ConversationData(
         user: user,
         lastMessage: lastMessage,
         lastTimestamp: lastTimestamp,
         unreadCount: unreadCount,
+        conversationId: conversationId,
       ));
     }
 
     return result;
   }
 
-  Future<int> _getUnreadCount(String currentUserId, String otherUserId) async {
+  // ✅ Fixed unread count — correct collection + correct field names
+  Future<int> _getUnreadCount(
+      String conversationId, String currentUserId) async {
+    if (conversationId.isEmpty) return 0;
     try {
-      final chatId = _getChatId(currentUserId, otherUserId);
       final snapshot = await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
+          .collection('conversations')       // ✅ was 'chats' — now fixed
+          .doc(conversationId)
           .collection('messages')
           .where('receiverId', isEqualTo: currentUserId)
           .where('isRead', isEqualTo: false)
           .get();
-
       return snapshot.docs.length;
     } catch (e) {
-      print('Error getting unread count: $e');
+      debugPrint('Error getting unread count: $e');
       return 0;
     }
   }
 
-  String _getChatId(String userId1, String userId2) {
-    return userId1.hashCode <= userId2.hashCode
-        ? '${userId1}_$userId2'
-        : '${userId2}_$userId1';
-  }
-
   void _navigateToProfile(BuildContext context, String userId) {
-    // Navigate to profile screen
-    // Replace with your actual profile screen
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Profile'),
-        content: const Text('Profile screen will be implemented here'),
+        content:
+            const Text('Profile screen will be implemented here'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -542,13 +545,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
         ],
       ),
     );
-
-    // Uncomment and modify when you have a profile screen:
-    // Navigator.of(context).push(
-    //   MaterialPageRoute(
-    //     builder: (_) => ProfileScreen(userId: userId),
-    //   ),
-    // );
   }
 
   void _showMenuBottomSheet(BuildContext context, FirebaseAuth auth) {
@@ -558,7 +554,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
       builder: (context) => Container(
         decoration: const BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -584,37 +581,38 @@ class _ChatsScreenState extends State<ChatsScreen> {
             ListTile(
               leading: const Icon(Icons.settings_outlined),
               title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to settings
-              },
+              onTap: () => Navigator.pop(context),
             ),
             ListTile(
               leading: const Icon(Icons.help_outline),
               title: const Text('Help'),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigate to help
-              },
+              onTap: () => Navigator.pop(context),
             ),
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+              title: const Text('Sign Out',
+                  style: TextStyle(color: Colors.red)),
               onTap: () async {
                 Navigator.pop(context);
                 try {
+                  // ✅ Clean up notifications before logout
+                  await NotificationService()
+                      .stopListeningForMessages();
+                  await NotificationService().deleteToken();
                   await auth.signOut();
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          (route) => false,
+                      MaterialPageRoute(
+                          builder: (_) => const LoginScreen()),
+                      (route) => false,
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Sign out failed: $e')),
+                      SnackBar(
+                          content: Text('Sign out failed: $e')),
                     );
                   }
                 }
@@ -627,10 +625,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
-  Widget _buildSkeletonConversationTile() {
+  Widget _buildSkeletonTile() {
     return Container(
       color: cardColor,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.only(bottom: 1),
       child: Row(
         children: [
@@ -681,8 +680,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   Future<ChatModel?> _getUserData(String userId) async {
-    final doc =
-    await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .get();
     if (!doc.exists) return null;
     return ChatModel.fromMap(doc.data()!, doc.id);
   }
@@ -693,21 +694,23 @@ class _ChatsScreenState extends State<ChatsScreen> {
         .doc(userId)
         .snapshots()
         .map((doc) =>
-    doc.exists ? ChatModel.fromMap(doc.data()!, doc.id) : null);
+            doc.exists ? ChatModel.fromMap(doc.data()!, doc.id) : null);
   }
 }
 
-// --------- DATA CLASS ---------
+// ── Data class ────────────────────────────────────────────────────────────
 class _ConversationData {
   final ChatModel user;
   final String lastMessage;
   final Timestamp? lastTimestamp;
   final int unreadCount;
+  final String conversationId;
 
   _ConversationData({
     required this.user,
     required this.lastMessage,
     required this.lastTimestamp,
     required this.unreadCount,
+    required this.conversationId,
   });
 }

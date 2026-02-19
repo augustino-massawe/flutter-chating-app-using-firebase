@@ -14,7 +14,7 @@ flutter:
 
   # Project assets
   assets:
-    - assets/images/logo.jpg
+    - assets/images/logo.png
     - assets/icons/
 
 
@@ -26,13 +26,19 @@ dependencies:
     sdk: flutter
 
   # Firebase Core (required for all Firebase services)
-  firebase_core: ^4.4.0
+  firebase_core: ^3.15.2
 
   # Firebase Authentication
   firebase_auth: any
 
   # Cloud Firestore database
   cloud_firestore: any
+
+  # Firebase Cloud Messaging — push notifications
+  firebase_messaging: ^15.2.10
+
+  # Show notification banners while app is in foreground
+  flutter_local_notifications: ^18.0.1
 
   # iOS-style icons
   cupertino_icons: ^1.0.8

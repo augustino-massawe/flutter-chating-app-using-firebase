@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../auth/login_screen.dart';
-import '../auth/register_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool firebaseConnected;
@@ -10,7 +8,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
@@ -20,8 +19,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    
-    // Initialize animation controller with longer duration for more sophisticated effects
+
+    // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -38,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
 
-    // Opacity animation (fade in/out)
+    // Opacity animation (fade in)
     _opacityAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -71,27 +70,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
 
-    // Start the animation
+    // Start looping animation
     _animationController.repeat(reverse: true);
 
-    // Navigate after 2.5 seconds for more dramatic effect
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        if (widget.firebaseConnected) {
-          // Navigate to login screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-        } else {
-          // Navigate to register screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const RegisterScreen()),
-          );
-        }
-      }
-    });
+    // ── Removed all navigation logic from here ──────────────────────────────
+    // Navigation is now fully handled by AuthGate in main.dart via
+    // authStateChanges() stream. SplashScreen is only shown while Firebase
+    // is resolving the persisted auth session (ConnectionState.waiting).
+    // This prevents conflicts between SplashScreen and AuthGate routing.
   }
 
   @override
@@ -109,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background gradient for more premium look
+          // Background gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -122,13 +108,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-          
+
           // Main content
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo with multiple animations
+                // Animated logo
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {
@@ -168,17 +154,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       ),
                     ),
                     child: Image.asset(
-                      'assets/images/logo.jpg',
+                      'assets/images/logo.png',
                       width: 120,
                       height: 120,
                       fit: BoxFit.contain,
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
-                // Loading text with enhanced styling
+
+                // App title
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {
@@ -197,9 +183,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 // Subtitle
                 AnimatedBuilder(
                   animation: _animationController,
@@ -218,10 +204,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
-                // Progress indicator
+
+                // Loading indicator
                 AnimatedBuilder(
                   animation: _animationController,
                   builder: (context, child) {
@@ -244,8 +230,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ],
             ),
           ),
-          
-          // Bottom decorative element
+
+          // Bottom label
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(

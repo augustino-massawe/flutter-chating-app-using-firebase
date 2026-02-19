@@ -24,6 +24,8 @@ android {
 
     // Java compatibility options (required for modern Flutter/AGP versions)
     compileOptions {
+        // Required for flutter_local_notifications
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -38,7 +40,7 @@ android {
         applicationId = "com.example.flutter_chat_app"
 
         // Minimum Android version supported (API 23 required for Firebase Auth)
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
 
         // Target SDK version provided by Flutter
         targetSdk = flutter.targetSdkVersion
@@ -60,4 +62,9 @@ android {
 flutter {
     // Path to Flutter project root
     source = "../.."
+}
+
+dependencies {
+    // Required for flutter_local_notifications on Android
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

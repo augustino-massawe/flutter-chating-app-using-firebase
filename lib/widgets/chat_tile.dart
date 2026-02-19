@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/chat_model.dart';
-import '../models/message_model.dart';
 
 class ChatTile extends StatelessWidget {
   final ChatModel chat;

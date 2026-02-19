@@ -5,7 +5,6 @@ import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/validators.dart';
 import '../../widgets/custom_text_field.dart';
-import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -27,6 +26,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _hidePassword = true;
   bool _hideConfirmPassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ── Persistent Auth Guard ───────────────────────────────────────────────
+    // If the user already has an active session and somehow lands on
+    // RegisterScreen, redirect them straight to Home immediately.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -67,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final credential = await _authService.registerWithEmail(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
@@ -81,39 +95,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       await _firestoreService.createUserProfile(
         uid: user.uid,
-        name: _nameController.text,
-        email: _emailController.text,
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
       );
 
       if (!mounted) return;
+
       _passwordController.clear();
       _confirmPasswordController.clear();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created successfully')),
       );
 
-      // Navigate to LoginScreen and prefill the email field
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => LoginScreen(initialEmail: _emailController.text),
-          ),
-        );
-      }
+      // ── After registration go directly to Home ──────────────────────────
+      // Firebase session is already active after registerWithEmail() so
+      // there is no need to go to LoginScreen first.
+      // AuthGate's authStateChanges() stream will pick up the new session
+      // automatically and keep the user logged in persistently.
+      Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_friendlyAuthError(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_friendlyAuthError(e))));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Registration failed: $e')));
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -147,9 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         'Please provide the details',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                        ),
+                        style: TextStyle(color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 28),
                       CustomTextField(
@@ -189,10 +199,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         hintText: 'Confirm password',
                         obscureText: _hideConfirmPassword,
                         textInputAction: TextInputAction.done,
-                        validator: (value) => Validators.validateConfirmPassword(
-                          value,
-                          _passwordController.text,
-                        ),
+                        validator:
+                            (value) => Validators.validateConfirmPassword(
+                              value,
+                              _passwordController.text,
+                            ),
                         suffixIcon: IconButton(
                           onPressed: () {
                             setState(() {
@@ -204,9 +215,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                           ),
-                          tooltip: _hideConfirmPassword
-                              ? 'Show password'
-                              : 'Hide password',
+                          tooltip:
+                              _hideConfirmPassword
+                                  ? 'Show password'
+                                  : 'Hide password',
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -220,17 +232,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.white),
-                                ),
-                              )
-                            : const Text('Sign Up'),
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                : const Text('Sign Up'),
                       ),
                       const SizedBox(height: 18),
                       Row(
@@ -242,11 +256,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(),
-                                ),
-                              );
+                              // ── Use named route to stay consistent ────────
+                              Navigator.pushReplacementNamed(context, '/login');
                             },
                             child: const Text('Login'),
                           ),

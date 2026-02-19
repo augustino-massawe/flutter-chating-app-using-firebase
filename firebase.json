@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"new-flutter-sms-app","appId":"1:898315261765:android:e2f5c746577928e2b0d02c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"new-flutter-sms-app","configurations":{"android":"1:898315261765:android:e2f5c746577928e2b0d02c","web":"1:898315261765:web:32189d58b8d9167cb0d02c"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "new-flutter-sms-app",
+          "appId": "1:898315261765:android:e2f5c746577928e2b0d02c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "new-flutter-sms-app",
+          "configurations": {
+            "android": "1:898315261765:android:e2f5c746577928e2b0d02c",
+            "web": "1:898315261765:web:32189d58b8d9167cb0d02c"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}
